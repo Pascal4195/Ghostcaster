@@ -1,28 +1,100 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="oled">
 <head>
     <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <title>Ghostcaster</title>
-                <link rel="manifest" href="manifest.json">
-                    <script src="https://cdn.tailwindcss.com"></script>
-                        <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-                            <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-                            </head>
-                            <body class="bg-white font-sans text-slate-900 overflow-x-hidden">
-                                <nav class="sticky top-0 bg-white/80 backdrop-blur-md border-b px-4 py-3 flex justify-between items-center z-50">
-                                        <span class="text-purple-600 font-black text-2xl tracking-tighter">GHOST</span>
-                                                <button id="connectBtn" class="bg-purple-600 text-white px-5 py-1.5 rounded-full text-sm font-bold shadow-lg">Connect</button>
-                                                    </nav>
-                                                        <main id="feed" class="max-w-xl mx-auto divide-y divide-slate-100 pb-24"></main>
-                                                            <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3 items-center">
-                                                                    <div class="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                                                                                <img id="userAvatar" src="https://api.dicebear.com/7.x/identicon/svg?seed=ghost" alt="avatar">
-                                                                                        </div>
-                                                                                                <input id="postText" type="text" placeholder="What's happening?" class="flex-1 bg-slate-100 rounded-2xl px-4 py-3 outline-none focus:ring-2 focus:ring-purple-400">
-                                                                                                        <button id="castBtn" class="bg-purple-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg">↑</button>
-                                                                                                            </div>
-                                                                                                                <script src="app.js"></script>
-                                                                                                                </body>
-                                                                                                                </html>
-                                                                                                                
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ghostcaster</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#855DCD">
+
+    <meta property="fc:frame" content='{"version":"next","imageUrl":"https://api.dicebear.com/7.x/identicon/svg?seed=Ghostcaster","button":{"title":"Launch Ghostcaster","action":{"type":"launch_frame","name":"Ghostcaster","url":"https://your-github-username.github.io/your-repo-name/","splashImageUrl":"https://api.dicebear.com/7.x/identicon/svg?seed=Ghostcaster","splashBackgroundColor":"#855DCD"}}}'>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    <style>
+        :root { --fc-purple: #855DCD; --bg: #ffffff; --text: #000000; --border: #e2e8f0; --card: #f8fafc; --muted: #64748b; }
+        [data-theme="dark"] { --bg: #121212; --text: #ffffff; --border: #2d2d2d; --card: #1e1e1e; --muted: #888888; }
+        [data-theme="oled"] { --bg: #000000; --text: #ffffff; --border: #1a1a1a; --card: #000000; --muted: #717171; }
+        body { background-color: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; transition: 0.2s; selection: background: #855DCD33; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .view { min-height: 100vh; padding-bottom: 80px; }
+    </style>
+</head>
+<body class="overflow-x-hidden">
+    <div id="sidebar" class="fixed inset-y-0 left-0 w-[280px] bg-[var(--bg)] z-[100] transform -translate-x-full transition-transform duration-300 border-r border-[var(--border)] shadow-2xl">
+        <div class="p-6 flex flex-col h-full">
+            <div id="sidePfp" class="w-16 h-16 rounded-full bg-slate-800 mb-4 border border-[var(--border)] overflow-hidden"></div>
+            <div id="sideName" class="font-black text-xl">Ghost User</div>
+            <div id="sideHandle" class="text-[var(--muted)] mb-6">@ghost</div>
+            <nav class="space-y-6 font-bold text-lg">
+                <div onclick="showView('home'); toggleSidebar()" class="cursor-pointer">🏠 Home</div>
+                <div onclick="showView('settings'); toggleSidebar()" class="cursor-pointer">⚙️ Settings</div>
+                <div id="connectBtn" class="text-fc-purple cursor-pointer">🔌 Connect Wallet</div>
+            </nav>
+            <div class="mt-auto text-[10px] text-[var(--muted)] opacity-50">
+                Ghostcaster is an independent project and is not affiliated with Farcaster.
+            </div>
+        </div>
+    </div>
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-[90] hidden"></div>
+
+    <nav class="sticky top-0 bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--border)] px-4 py-3 flex items-center justify-between z-50">
+        <div onclick="toggleSidebar()" id="hdrAvatar" class="w-8 h-8 rounded-full bg-slate-800 border border-[var(--border)] overflow-hidden cursor-pointer"></div>
+        <span class="font-black text-lg tracking-tight">Ghostcaster</span>
+        <div class="w-8"></div>
+    </nav>
+
+    <div id="view-home" class="view">
+        <div class="flex gap-6 p-3 overflow-x-auto hide-scrollbar border-b border-[var(--border)] text-sm font-bold">
+            <button onclick="filterChannel('all')" class="text-fc-purple border-b-2 border-fc-purple pb-1 shrink-0">Home</button>
+            <button onclick="filterChannel('base')" class="text-[var(--muted)] shrink-0">/base</button>
+            <button onclick="filterChannel('degen')" class="text-[var(--muted)] shrink-0">/degen</button>
+            <button onclick="filterChannel('purple')" class="text-[var(--muted)] shrink-0">/purple</button>
+        </div>
+        <main id="feed" class="divide-y divide-[var(--border)]"></main>
+    </div>
+
+    <div id="view-settings" class="view hidden p-4">
+        <h2 class="text-2xl font-black mb-6">Settings</h2>
+        <div class="space-y-8">
+            <div>
+                <label class="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Theme</label>
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                    <button onclick="setTheme('light')" class="p-3 border border-[var(--border)] rounded-xl text-xs bg-white text-black font-bold">Light</button>
+                    <button onclick="setTheme('dark')" class="p-3 border border-[var(--border)] rounded-xl text-xs bg-[#121212] text-white font-bold">Dark</button>
+                    <button onclick="setTheme('oled')" class="p-3 border border-[var(--border)] rounded-xl text-xs bg-black text-white font-bold">OLED</button>
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-[var(--muted)] uppercase tracking-widest">Storage Capacity</label>
+                <div class="mt-2 p-4 bg-[var(--card)] rounded-xl border border-[var(--border)]">
+                    <div class="flex justify-between text-xs mb-2 font-bold"><span>Local Storage</span><span id="storage-percent">0%</span></div>
+                    <div class="w-full bg-slate-800 h-1.5 rounded-full"><div id="storage-bar" class="bg-fc-purple h-full transition-all duration-500" style="width: 0%"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="fixed bottom-0 left-0 right-0 bg-[var(--bg)] border-t border-[var(--border)] flex justify-around py-4 z-50">
+        <span onclick="showView('home')" class="text-2xl cursor-pointer">🏠</span>
+        <span class="text-2xl opacity-20">🔍</span>
+        <span class="text-2xl opacity-20">🔔</span>
+        <span onclick="showView('settings')" class="text-2xl cursor-pointer">⚙️</span>
+    </footer>
+
+    <button onclick="openComposer()" class="fixed bottom-24 right-6 w-14 h-14 bg-[#855DCD] text-white rounded-full shadow-lg text-3xl z-40 font-light">+</button>
+    <div id="composer" class="fixed inset-0 bg-[var(--bg)] z-[200] hidden flex flex-col p-4">
+        <div class="flex justify-between items-center mb-6">
+            <button onclick="closeComposer()" class="text-lg">Cancel</button>
+            <button id="castBtn" class="bg-fc-purple text-white px-6 py-1.5 rounded-full font-bold">Cast</button>
+        </div>
+        <textarea id="postText" placeholder="What's happening?" class="bg-transparent text-xl outline-none resize-none flex-1"></textarea>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
