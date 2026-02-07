@@ -1,0 +1,11 @@
+{
+      "name": "Ghostcaster",
+        "short_name": "Ghost",
+          "description": "The $0 Warpcaster Clone",
+            "start_url": "./index.html",
+              "display": "standalone",
+                "background_color": "#ffffff",
+                  "theme_color": "#9333ea",
+                    "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/7088/7088431.png", "sizes": "512x512", "type": "image/png" }]
+                    }
+
