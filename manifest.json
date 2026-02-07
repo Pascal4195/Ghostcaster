@@ -1,11 +1,33 @@
 {
-      "name": "Ghostcaster",
-        "short_name": "Ghost",
-          "description": "The $0 Warpcaster Clone",
-            "start_url": "./index.html",
-              "display": "standalone",
-                "background_color": "#ffffff",
-                  "theme_color": "#9333ea",
-                    "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/7088/7088431.png", "sizes": "512x512", "type": "image/png" }]
-                    }
-
+  "name": "Ghostcaster",
+  "short_name": "Ghost",
+  "description": "The decentralized ghost in the machine.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#855DCD",
+  "icons": [
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=Ghostcaster&backgroundColor=855dcd",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=Ghostcaster&backgroundColor=855dcd",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://api.dicebear.com/7.x/identicon/svg?seed=Ghostcaster&backgroundColor=000000",
+      "sizes": "1080x1920",
+      "type": "image/svg+xml",
+      "form_factor": "narrow",
+      "label": "Ghostcaster Home Feed"
+    }
+  ]
+}
