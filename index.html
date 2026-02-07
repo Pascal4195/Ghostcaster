@@ -10,44 +10,71 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+    
     <style>
         :root { --fc-purple: #855DCD; --bg: #ffffff; --text: #000000; --border: #e2e8f0; }
         [data-theme="oled"] { --bg: #000000; --text: #ffffff; --border: #1a1a1a; }
-        body { background-color: var(--bg); color: var(--text); font-family: -apple-system, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
-        .view { min-height: 100vh; padding-bottom: 90px; }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: -apple-system, system-ui, sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: contain; /* Prevents "pull to refresh" bounce */
+        }
+
+        /* Responsive Fix: Buttons always on top */
+        button, .clickable {
+            position: relative;
+            z-index: 50;
+            touch-action: manipulation;
+        }
+
+        /* OLED Safe Areas for iPhone Notch & Bottom Bar */
+        .view { 
+            min-height: 100vh; 
+            padding-bottom: calc(80px + env(safe-area-inset-bottom));
+            padding-top: env(safe-area-inset-top);
+        }
+
         .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Smooth Sidebar Transition */
+        #sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
 <body class="overflow-x-hidden">
 
-    <div id="sidebar" class="fixed inset-y-0 left-0 w-[280px] bg-[var(--bg)] z-[100] transform -translate-x-full transition-transform duration-300 border-r border-[var(--border)]">
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/70 z-[90] hidden backdrop-blur-sm"></div>
+
+    <div id="sidebar" class="fixed inset-y-0 left-0 w-[85%] max-w-[300px] bg-[var(--bg)] z-[100] transform -translate-x-full border-r border-[var(--border)] pt-[env(safe-area-inset-top)]">
         <div class="p-6 flex flex-col h-full">
-            <div id="sidePfp" class="w-16 h-16 rounded-full bg-slate-800 mb-4 border border-[var(--border)] overflow-hidden"></div>
-            <div id="sideName" class="font-black text-xl">Guest</div>
-            <div id="sideHandle" class="text-slate-500 mb-6">@anonymous</div>
+            <div id="sidePfp" class="w-14 h-14 rounded-full bg-slate-800 mb-3 border border-[var(--border)] overflow-hidden"></div>
+            <div id="sideName" class="font-black text-xl">Guest User</div>
+            <div id="sideHandle" class="text-slate-500 text-sm mb-6">@anonymous</div>
             
-            <nav class="space-y-4">
-                <button onclick="loginGoogle()" class="w-full bg-white text-black p-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm border border-slate-200">
+            <nav class="space-y-3">
+                <button onclick="loginGoogle()" class="w-full bg-white text-black py-3 rounded-xl flex items-center justify-center gap-2 font-bold text-sm border border-slate-200 clickable">
                     <img src="https://www.google.com/favicon.ico" class="w-4 h-4"> Sign in with Google
                 </button>
                 
-                <button onclick="connectWallet()" class="w-full bg-[#855DCD]/10 text-[#855DCD] p-3 rounded-xl font-bold text-sm">
+                <button onclick="connectWallet()" class="w-full bg-[#855DCD]/10 text-[#855DCD] py-3 rounded-xl font-bold text-sm clickable">
                     🔌 Connect MetaMask
                 </button>
                 
-                <hr class="border-[var(--border)] my-4">
-                <div onclick="showView('home'); toggleSidebar()" class="py-2 font-bold cursor-pointer">🏠 Home</div>
-                <div onclick="showView('settings'); toggleSidebar()" class="py-2 font-bold cursor-pointer">⚙️ Settings</div>
+                <div class="h-px bg-[var(--border)] my-6"></div>
+                
+                <div onclick="showView('home'); toggleSidebar()" class="py-3 font-bold flex items-center gap-3 clickable text-lg">🏠 Home</div>
+                <div onclick="showView('settings'); toggleSidebar()" class="py-3 font-bold flex items-center gap-3 clickable text-lg">⚙️ Settings</div>
             </nav>
         </div>
     </div>
-    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-[90] hidden"></div>
 
-    <nav class="sticky top-0 bg-[var(--bg)]/80 backdrop-blur-md border-b border-[var(--border)] px-4 py-3 flex items-center justify-between z-50">
-        <div onclick="toggleSidebar()" id="hdrAvatar" class="w-8 h-8 rounded-full bg-slate-800 border border-[var(--border)] overflow-hidden cursor-pointer">
-            <img src="https://api.dicebear.com/7.x/identicon/svg?seed=guest">
+    <nav class="sticky top-0 bg-[var(--bg)]/80 backdrop-blur-lg border-b border-[var(--border)] px-4 py-3 flex items-center justify-between z-50 pt-[env(safe-area-inset-top)]">
+        <div onclick="toggleSidebar()" id="hdrAvatar" class="w-8 h-8 rounded-full bg-slate-800 border border-[var(--border)] overflow-hidden clickable">
+            <img src="https://api.dicebear.com/7.x/identicon/svg?seed=ghost">
         </div>
-        <span class="font-black text-lg">Ghostcaster</span>
+        <span class="font-black text-lg tracking-tight">Ghostcaster</span>
         <div class="w-8"></div>
     </nav>
 
@@ -55,20 +82,25 @@
         <main id="feed" class="divide-y divide-[var(--border)]"></main>
     </div>
 
-    <footer class="fixed bottom-0 left-0 right-0 bg-[var(--bg)] border-t border-[var(--border)] flex justify-around py-4 z-50">
-        <span onclick="showView('home')" class="text-2xl cursor-pointer">🏠</span>
+    <div id="view-settings" class="view hidden p-6">
+        <h2 class="text-2xl font-black mb-6">Settings</h2>
+        <button onclick="localStorage.clear(); location.reload();" class="text-red-500 font-bold">Logout & Clear Cache</button>
+    </div>
+
+    <footer class="fixed bottom-0 left-0 right-0 bg-[var(--bg)]/90 backdrop-blur-md border-t border-[var(--border)] flex justify-around py-3 pb-[calc(12px + env(safe-area-inset-bottom))] z-50">
+        <span onclick="showView('home')" class="text-2xl clickable">🏠</span>
         <span class="text-2xl opacity-20">🔍</span>
-        <span onclick="showView('settings')" class="text-2xl cursor-pointer">⚙️</span>
+        <span onclick="showView('settings')" class="text-2xl clickable">⚙️</span>
     </footer>
 
-    <button onclick="openComposer()" class="fixed bottom-24 right-6 w-14 h-14 bg-[#855DCD] text-white rounded-full shadow-lg text-3xl font-light z-40">+</button>
+    <button onclick="openComposer()" class="fixed bottom-24 right-6 w-14 h-14 bg-[#855DCD] text-white rounded-full shadow-2xl text-3xl font-light z-40 clickable flex items-center justify-center">+</button>
 
-    <div id="composer" class="fixed inset-0 bg-[var(--bg)] z-[200] hidden flex flex-col p-4">
+    <div id="composer" class="fixed inset-0 bg-[var(--bg)] z-[200] hidden flex flex-col p-4 pt-[env(safe-area-inset-top)]">
         <div class="flex justify-between items-center mb-6">
-            <button onclick="closeComposer()">Cancel</button>
-            <button id="castBtn" class="bg-fc-purple text-white px-6 py-1.5 rounded-full font-bold">Cast</button>
+            <button onclick="closeComposer()" class="text-slate-500">Cancel</button>
+            <button id="castBtn" class="bg-fc-purple text-white px-6 py-1.5 rounded-full font-bold clickable">Cast</button>
         </div>
-        <textarea id="postText" placeholder="What's the alpha?" class="bg-transparent text-xl outline-none resize-none flex-1"></textarea>
+        <textarea id="postText" placeholder="What's happening?" class="bg-transparent text-xl outline-none resize-none flex-1 p-2"></textarea>
     </div>
 
     <script src="app.js"></script>
